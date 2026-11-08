@@ -1,0 +1,356 @@
+{
+  "info": {
+    "_postman_id": "9eec7e11-0f70-4a9e-9d5e-8a7e7d8c0101",
+    "name": "Supabase - Testes de Autenticação (CT01-CT06)",
+    "description": "Testes do endpoint Supabase Auth. Importe também o Environment e preencha as variáveis. Nunca use chave sb_secret ou service_role.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "CT01 - Login válido",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "Login com credenciais válidas. Não compartilhe access_token ou refresh_token."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"CT01: status HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"CT01: resposta contém tokens e usuário\", function () {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.have.property(\"access_token\");",
+              "  pm.expect(data).to.have.property(\"refresh_token\");",
+              "  pm.expect(data).to.have.property(\"user\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT02 - Senha incorreta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{wrong_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "E-mail cadastrado e senha propositalmente incorreta."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de autenticação negada (HTTP 400)\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Resposta contém informação de erro\", function () {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.satisfy(v => !!(v.error || v.error_description || v.msg || v.message));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT03 - Usuário inexistente",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{nonexistent_email}}\",\n  \"password\": \"{{wrong_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "E-mail de teste que não deve estar cadastrado."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Resposta de autenticação negada (HTTP 400)\", function () { pm.response.to.have.status(400); });",
+              "pm.test(\"Resposta contém informação de erro\", function () {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.satisfy(v => !!(v.error || v.error_description || v.msg || v.message));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT04 - Campos vazios",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "E-mail e senha vazios."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Erro de validação (HTTP 400 ou 422)\", function () {",
+              "  pm.expect([400, 422]).to.include(pm.response.code);",
+              "});",
+              "pm.test(\"Resposta contém informação de erro\", function () {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.satisfy(v => !!(v.error || v.error_description || v.msg || v.message));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT05 - E-mail malformado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{api_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"abc\",\n  \"password\": \"123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "E-mail inválido e senha curta."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Erro de validação (HTTP 400 ou 422)\", function () {",
+              "  pm.expect([400, 422]).to.include(pm.response.code);",
+              "});",
+              "pm.test(\"Resposta contém informação de erro\", function () {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.satisfy(v => !!(v.error || v.error_description || v.msg || v.message));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT06 - Sem header apikey (extra)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "Teste extra sem o header apikey."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"CT06: requisição sem apikey é recusada (HTTP 401)\", function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
